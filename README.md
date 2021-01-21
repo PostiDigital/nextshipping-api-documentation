@@ -40,13 +40,6 @@ Implementation documentation for the Nextshipping logistics service
     + [Request](#request-5)
     + [Response](#response-5)
     + [Shipment status codes](#shipment-status-codes)
-  * [Cancel shipment](#cancel-shipment)
-    + [Request](#request-6)
-    + [Cancel shipment](#cancel-shipment-1)
-    + [Response](#response-6)
-  * [Callback](#callback)
-    + [Server request](#server-request)
-    + [Client response](#client-response)
 - [Prinetti API](#prinetti-api)
   * [Create Shipment](#create-shipment)
     + [Minimal XML example](#minimal-xml-example)
@@ -789,112 +782,6 @@ Status codes are most part same as described in implementation guide of IFTSTA t
 |77     |Lähetys palautuu lähettäjälle  |Item is returning to the sender|
 |91     |Lähetys on saapunut postitoimipaikkaan |Item is arrived to a post office|
 |99     |Lähetys lähdössä ulkomaille    |Outbound|
-
-## Cancel shipment
-
-Cancels the shipment. Also refunds customers if it's possible. Only shipments that haven't been sent, can be cancelled.
-
-### Request
-
-POST: /shipment/cancel
-
-|Param name     |Type   |Required       |Content|
-|---|---|---|---|
-|api_key        |UUID   |x      ||
-|shipment_id    |UUID   |x      |Original shipments UUID (as in response.reference@uuid)|
-|timestamp      |UNIX TIME      |x      ||
-|hash   |AN 64  |x      ||
-
-### Cancel shipment 
-
-Example:
-```php
-$post_params = [
-    'api_key'       => $api_key,
-    'shipment_id'   => 'df202295-b950-46a9-8125-0e7921924620',
-    'timestamp'     => time()
-];
-
-ksort($post_params);
-
-$post_params['hash'] =  hash_hmac('sha256', join('&', $post_params), $secret);
-```
-
-### Response
-
-Example:
-```json
-{
-	"success": true
-}
-```
-
-Example:
-```
-{
-	"success": false
-}
-```
-
-## Callback
-
-Callback service is used to push notifications from the tracking data back to client system.
-
-### Server request
-
-POST: callback url
-
-|Param name     |Type   |Required       |Details|
-|---|---|---|---|
-|api_key        |UUID   |x      ||
-|tracking_code  |AN 100 |x      ||
-|timestamp      |UNIX TIME      |x      ||
-|event  |N      |x      |See "Shipment status codes"|
-||
-|object |JSON   |x      |JSON presentation of the event. Object is same which is returned from shipment/status API.|
-|hash   |AN 64  |x      ||
-
-Hash calculation example:
-```php
-$post_params = [
-    'api_key' => $api_key,
-    'tracking_code' => 'JJFI64574900000137203',
-	'event'	=> 68,
-	'object' => '{"message_created":"2016-09-30 17:37:00", "reference":"1475233831", "tracking_code":"JJFI64574900000137203", "measured_weight":"0", "measured_volume":"0", "status_code":"68", "receiver_name":"", "event_timestamp":"2016-09-30 17:34:00", "postcode":"87700", "post_office":"KAJAANI"}',
-    'timestamp' => time()
-];
-
-ksort($post_params);
-
-$post_params['hash'] =  hash_hmac('sha256', join('&', $post_params), $secret);
-```
-
-### Client response
-
-Client have to respond with HTTP status code 200 and with a valid JSON -object. If the client system does not respond in 10 seconds or responds in some other than correct message and status server will try to send data again after 15 minutes. Server will try to send notification to client multiple times before it stops trying.
-
-JSON response example:
-```json
-{
-	"success": true
-}
-```
-
-Full HTTP response example response:
-```
-HTTP/1.1 200 OK
-Date: Tue, 12 Sep 2017 10:54:56 GMT
-Server: Apache
-Last-Modified: Tue, 12 Sep 2017 10:54:43 GMT
-Accept-Ranges: bytes
-Content-Length: 18
-Connection: close
-Content-Type: application/json
-
-{
-	"success": true
-}
-```
 
 # Prinetti API
 
