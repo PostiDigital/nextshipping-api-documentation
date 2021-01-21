@@ -36,10 +36,6 @@ Implementation documentation for the Nextshipping logistics service
   * [Get info about a single pickup point](#get-info-about-a-single-pickup-point)
     + [Request](#request-4)
     + [Response](#response-4)
-  * [Get Shipment status](#get-shipment-status)
-    + [Request](#request-5)
-    + [Response](#response-5)
-    + [Shipment status codes](#shipment-status-codes)
 - [Prinetti API](#prinetti-api)
   * [Create Shipment](#create-shipment)
     + [Minimal XML example](#minimal-xml-example)
@@ -718,70 +714,6 @@ Response
 	"point_type": "PARCEL_LOCKER"
 }
 ```
-
-## Get Shipment status
-### Request
-
-POST: /shipment/status
-
-|Param name	|Type	|Required|
-|---	|---	|---	|
-|api_key	|UUID	|x	|
-|tracking_code	|AN 100	|x	|
-|timestamp	|UNIX TIME	|x	|
-|hash	|AN 64	|x	|
-
-Example:
-```php
-$post_params = [
-    'api_key'       => $api_key,
-    'tracking_code' => 'JJFI64574900000137203',
-    'timestamp'     => time()
-];
-
-ksort($post_params);
-
-$post_params['hash'] =  hash_hmac('sha256', join('&', $post_params), $secret);
-```
-
-### Response
-
-Example:
-```json
-[
-	{
-		"message_created":"2016-09-30 17:37:00",
-		"reference":"1475233831",
-		"tracking_code":"JJFI64574900000137203",
-		"measured_weight":"0",
-		"measured_volume":"0",
-		"status_code":"68",
-		"receiver_name":"",
-		"event_timestamp":"2016-09-30 17:34:00",
-		"postcode":"87700",
-		"post_office":"KAJAANI"
-	}
-]
-```
-### Shipment status codes
-
-Status codes are most part same as described in implementation guide of IFTSTA transport status documentation by Posti.
-
-|Status Code    |Message FI     |Message EN|
-|---|---|---|
-|13     |Lähetys on noudettu lähettäjältä       |Item is collected from sender - picked up|
-|20     |Lähetylle on tehty poikkeama   |Exception|
-|22     |Lähetys on luovutettu vastaanottajalle |Item has been handed over to the recipient|
-|31     |Lähetys on kuljetuksessa       |Item is in transport|
-|38     |Lähetykseen liittyvä postiennakkomaksu on suoritettu   |C.O.D payment is paid to the sender|
-|45     |Lähetyksestä on lähetetty saapumisilmoitus     |Informed consignee of arrival|
-|48     |Lähetys on lastattu runkokuljetukseen  |Item is loaded onto a means of transport|
-|56     |Lähetystä ei ole toimitettu – luovutusyritys on tehty  |Item not delivered – delivery attempt made|
-|68     |Lähetyksen EDI-tiedot vastaanotettu lähettäjältä       |Pre-information is received from sender|
-|71     |Lähetys on lastattu jakelukuljetukseen |Item is ready for delivery transportation|
-|77     |Lähetys palautuu lähettäjälle  |Item is returning to the sender|
-|91     |Lähetys on saapunut postitoimipaikkaan |Item is arrived to a post office|
-|99     |Lähetys lähdössä ulkomaille    |Outbound|
 
 # Prinetti API
 
