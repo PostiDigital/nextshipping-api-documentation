@@ -17,8 +17,6 @@ Implementation documentation for the Nextshipping logistics service
 - [Environments](#environments)
   * [Testing](#testing)
   * [Production](#production)
-- [Request Authentication](#request-authentication)
-  * [Hmac Example](#hmac-example)
 - [General APIs](#general-apis)
   * [List available shipping methods](#list-available-shipping-methods)
     + [Request](#request)
@@ -79,33 +77,6 @@ Not available at the moment
 |Merchant API key||STRING|
 |Merhcnat secret||AN 80|
 
-# Request Authentication
-With the exception of Prinetti API all request are signed with an sha256 hmac calculated by using the request parameters, sorted alphabetically by parameter key and separated by an &, as the message. Calculated HMAC is placed in the hash -parameter.
-
-## Hmac Example
-
-```php
-$secret = 'a1b2c3d4e5f6';
-
-$post_params = [
-	'name'  => 'Some name',
-	'date'  => '2016-02-01',
-	'char'  => 'C',
-];
-
-ksort($post_params);
-
-$post_params['hash'] =  hash_hmac('sha256', join('&', $post_params), $secret);
-
-
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_params));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-$output = curl_exec($ch);
-```
-
 # General APIs
 ## List available shipping methods
 ### Request
@@ -113,7 +84,6 @@ Lists shipping methods currently supported by Nextshipping.fi API. Use the shipp
 POST: /shipping-methods/list
 |Param name|Type|Required|Content|
 |---|---|---|---|
-|api_key|UUID|x||	
 |timestamp|UNIX TIME|x||
 |language|AN2|FI, SE or EN. If not specified, FI is assumed.|
 |hash|AN64|x||
@@ -121,7 +91,6 @@ POST: /shipping-methods/list
 Example:
 ```php
 $post_params = [
-	'api_key' 		=> '00000000-0000-0000-0000-000000000000',
 	'timestamp' 	=> time(),
 ];
 
@@ -431,23 +400,10 @@ Get informationa bout a shipping method. This information is the same as in list
 POST: /shipping-methods/get
 |Param name|Type|Required|Content|
 |---|---|---|---|
-|api_key|UUID|x||
 |timestamp|UNIX TIME|x||
 |shipping_method_code|N 6|x||
 |language|AN 2||FI, SE or EN. If not specified, FI is assumed.|
 |hash|AN 64|x||
-
-Example:
-```php
-
-$post_params = [
-	'api_key' 		=> '00000000-0000-0000-0000-000000000000',
-	'shipping_method_code'	=> 90010,
-	'timestamp' 	=> time(),
-];
-
-$post_params['hash'] =  hash_hmac('sha256', join('&', $post_params), $secret);
-```
 
 ### Response
 
@@ -503,19 +459,8 @@ POST: /additional-services/list
 
 |Param name|Type|Required|Content|
 |---|---|---|---|
-|api_key|UUID|x||	
 |timestamp|UNIX TIME|x||	
 |language|AN 2||FI, SE or EN. If not specified, FI is assumed.|
-|hash|AN 64|x||
-List shipping methods 
-```php
-$post_params = [
-	'api_key' 		=> '00000000-0000-0000-0000-000000000000',
-	'timestamp' 	=> time(),
-];
-
-$post_params['hash'] =  hash_hmac('sha256', join('&', $post_params), $secret);
-```
 
 ### Response
 Response 
@@ -549,7 +494,6 @@ POST: /pickup-points/search
 
 |Param name     |Type   |Required       |Content|
 |---|----|----|----|
-|api_key        |UUID   |x      ||
 |address        |AN 400 |       ||
 |postcode       |AN 5   |       ||
 |country        |AN 2   |       |ISO 3166 style. If not specified, FI is used.|
@@ -557,7 +501,6 @@ POST: /pickup-points/search
 |limit  |N      |       |Limit search results. Defaults to 5. Possible values are from 1 to 15.|
 |query  |AN     |       |Address string query. If used address and postcode params are ignored and geolocation search is done by just using this string.|
 |timestamp      |UNIX TIME      |x      ||
-|hash   |AN 64  |x      ||
 
 Example:
 ```php
@@ -731,8 +674,7 @@ POST: /prinetti/create-shipment
 |---------------|---------------|---------------|---------------|--------------------|
 |eChannel       |1      |Root element of the document   |       ||
 |ROUTING        |1      |       |       ||
-|Routing.Account        |1      |User account   |UUID   ||
-|Routing.Key    |1      |Shared secret  |String ||
+|Routing.Token        |1      |Token|UUID   ||
 |Routing.Id     |1      |Unique id of the request       |Numeric        ||
 |Routing.Time   |1      |Timestamp of the request, in format YYYYMMDDHHMMSS     |Timestamp      ||
 |Shipment       |1      |       |       ||
@@ -807,8 +749,7 @@ A single packet, no additional services.
 <?xml version="1.0" encoding="UTF-8"?>
 <eChannel>
     <ROUTING>
-	<Routing.Account>00000000-0000-0000-0000-000000000000</Routing.Account>
-	<Routing.Key>1234567890ABCDEF</Routing.Key>
+	<Routing.Token>AC63.......</Routing.Token>
 	<Routing.Id>1464524676</Routing.Id>
 	<Routing.Name>puitajamuttereita.fi</Routing.Name>
 	<Routing.Time>20160529152436</Routing.Time>
@@ -856,8 +797,7 @@ Multipacket shipment via Matkahuolto, cash on delivery. Has multiple elements fr
     <ROUTING>
 	<Routing.Target>1</Routing.Target><!-- Ignored -->
 	<Routing.Source>505</Routing.Source><!-- Ignored -->
-	<Routing.Account>00000000-0000-0000-0000-000000000000</Routing.Account>
-	<Routing.Key>1234567890ABCDEF</Routing.Key>
+	<Routing.Token>1234567890ABCDEF</Routing.Token>
 	<Routing.Id>1479032410</Routing.Id>
 	<Routing.Name>Testisanoma</Routing.Name>
 	<Routing.Time>20161113122010</Routing.Time>
